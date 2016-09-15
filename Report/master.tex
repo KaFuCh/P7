@@ -1,0 +1,34 @@
+\input{preamble.tex}
+\begin{document}
+  \include{frontpage}
+  \include{colophon}
+
+  \pdfbookmark[0]{Title Page}{label:Titlepage}
+  \include{titlepage}
+	\blankpage
+
+  \pdfbookmark[0]{\contentsname}{label:Contents}
+	\pagestyle{empty}
+  \tableofcontents
+  \listoffigures
+  \begingroup
+  \let\clearpage\relax
+  \listoftables
+  \endgroup
+	\clearpage
+	\pagestyle{BasicStyle}
+
+  \pagenumbering{arabic}
+  \include{preface}\thispagestyle{empty}
+  \blankpage
+
+  \include{introduction}
+  \include{conclusion}
+  \include{futurework}
+
+  \pdfbookmark[0]{Bibliography}{label:Bibliography}
+  \printbibliography
+
+  \include{appendix}
+
+\end{document}
