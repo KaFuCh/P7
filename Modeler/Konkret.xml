@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+const int N = 9;
+const int M = 7;
+chan Transport[N], work[M];</declaration>
+	<template>
+		<name x="5" y="5">Modul</name>
+		<parameter>int id, int type, int&amp; next[10], int length</parameter>
+		<declaration>// Place local declarations here.
+typedef int[0, 1] id_t;
+
+bool is_callable(id_t cid)
+{
+   int i;
+   for(i=0; i&lt;length;++i){
+        if(next[i] == cid){
+            return true;
+       }
+    }
+   return false;
+}</declaration>
+		<location id="id0" x="-162" y="-34">
+			<name x="-172" y="-68">Done</name>
+		</location>
+		<location id="id1" x="-279" y="51">
+			<name x="-314" y="68">Processing</name>
+		</location>
+		<location id="id2" x="-399" y="-34">
+			<name x="-409" y="-68">Idle</name>
+		</location>
+		<init ref="id2"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id2"/>
+			<label kind="select" x="-306" y="-144">e: id_t</label>
+			<label kind="guard" x="-323" y="-127">is_callable(e)</label>
+			<label kind="synchronisation" x="-331" y="-68">Transport[e]!</label>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-221" y="17">work[type]?</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="synchronisation" x="-433" y="17">Transport[id]?</label>
+		</transition>
+	</template>
+	<template>
+		<name>Recipe</name>
+		<location id="id3" x="-93" y="-297">
+		</location>
+		<location id="id4" x="-93" y="8">
+		</location>
+		<location id="id5" x="-93" y="-59">
+		</location>
+		<location id="id6" x="-93" y="-127">
+		</location>
+		<location id="id7" x="-93" y="-212">
+		</location>
+		<init ref="id3"/>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-76" y="-272">Transport[0]!</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="synchronisation" x="-85" y="-42">work[6]!</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="-85" y="-110">work[3]!</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="-85" y="-187">work[2]!</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+int a0[10] = {1, 111, 111, 1111, 111, 111, 111, 111, 111, 111};
+
+Process0 = Modul(0,0, a0, 1);
+//Process1 = Modul(1,1,{2});
+//Process2 = Modul(2,2,{3});
+//Process3 = Modul(3,3,{4});
+//Process4 = Modul(4,4,{5,8});
+//Process5 = Modul(5,4,{6});
+//Process6 = Modul(6,5,{7});
+//Process7 = Modul(7,4,{8});
+//Process8 = Modul(8,6,{0});
+
+recipe = Recipe();
+
+// List one or more processes to be composed into a system.
+system recipe, Process0;//, Process1, Process2, Process3, Process4, Process5, Process6, Process7, Process8;
+    </system>
+	<queries>
+	</queries>
+</nta>
