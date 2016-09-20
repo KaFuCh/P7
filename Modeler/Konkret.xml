@@ -2,14 +2,17 @@
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
 <nta>
 	<declaration>// Place global declarations here.
-const int N = 9;
+clock y;
+
+const int N = 10;
 const int M = 7;
 chan Transport[N], work[M];</declaration>
 	<template>
 		<name x="5" y="5">Modul</name>
-		<parameter>int id, int type, int&amp; next[10], int length</parameter>
+		<parameter>int id, int type, int p_time, int t_time,  int&amp; next[4], int length</parameter>
 		<declaration>// Place local declarations here.
-typedef int[0, 1] id_t;
+typedef int[0, 10] id_t;
+clock x;
 
 bool is_callable(id_t cid)
 {
@@ -21,86 +24,123 @@ bool is_callable(id_t cid)
     }
    return false;
 }</declaration>
-		<location id="id0" x="-162" y="-34">
-			<name x="-172" y="-68">Done</name>
+		<location id="id0" x="-76" y="272">
+			<name x="-153" y="314">Transporting</name>
+			<label kind="invariant" x="-86" y="289">x &lt;= t_time</label>
 		</location>
-		<location id="id1" x="-279" y="51">
-			<name x="-314" y="68">Processing</name>
+		<location id="id1" x="187" y="34">
+			<name x="177" y="0">Done</name>
 		</location>
-		<location id="id2" x="-399" y="-34">
-			<name x="-409" y="-68">Idle</name>
+		<location id="id2" x="187" y="272">
+			<name x="152" y="289">Processing</name>
+			<label kind="invariant" x="153" y="306">x &lt;= p_time</label>
 		</location>
-		<init ref="id2"/>
+		<location id="id3" x="-76" y="34">
+			<name x="-86" y="0">Idle</name>
+		</location>
+		<init ref="id3"/>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id3"/>
+			<label kind="select" x="-58" y="102">e: id_t</label>
+			<label kind="guard" x="-58" y="119">is_callable(e)</label>
+			<label kind="synchronisation" x="-58" y="136">Transport[e]!</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-204" y="238">Transport[id]?</label>
+			<label kind="assignment" x="-178" y="263">x = 0</label>
+		</transition>
 		<transition>
 			<source ref="id0"/>
 			<target ref="id2"/>
-			<label kind="select" x="-306" y="-144">e: id_t</label>
-			<label kind="guard" x="-323" y="-127">is_callable(e)</label>
-			<label kind="synchronisation" x="-331" y="-68">Transport[e]!</label>
+			<label kind="guard" x="17" y="246">x == t_time</label>
+			<label kind="assignment" x="34" y="272">x = 0</label>
 		</transition>
 		<transition>
 			<source ref="id1"/>
-			<target ref="id0"/>
-			<label kind="synchronisation" x="-221" y="17">work[type]?</label>
+			<target ref="id3"/>
+			<label kind="select" x="34" y="-42">e: id_t</label>
+			<label kind="guard" x="8" y="-25">is_callable(e)</label>
+			<label kind="synchronisation" x="8" y="-8">Transport[e]!</label>
 		</transition>
 		<transition>
 			<source ref="id2"/>
 			<target ref="id1"/>
-			<label kind="synchronisation" x="-433" y="17">Transport[id]?</label>
+			<label kind="guard" x="212" y="161">x == p_time</label>
+			<label kind="synchronisation" x="212" y="127">work[type]?</label>
 		</transition>
 	</template>
 	<template>
 		<name>Recipe</name>
-		<location id="id3" x="-93" y="-297">
+		<declaration>bool done = false;</declaration>
+		<location id="id4" x="-93" y="-297">
 		</location>
-		<location id="id4" x="-93" y="8">
+		<location id="id5" x="-93" y="25">
 		</location>
-		<location id="id5" x="-93" y="-59">
+		<location id="id6" x="-93" y="-59">
 		</location>
-		<location id="id6" x="-93" y="-127">
+		<location id="id7" x="-93" y="-127">
 		</location>
-		<location id="id7" x="-93" y="-212">
+		<location id="id8" x="-93" y="-212">
 		</location>
-		<init ref="id3"/>
+		<init ref="id4"/>
 		<transition>
-			<source ref="id3"/>
-			<target ref="id7"/>
+			<source ref="id4"/>
+			<target ref="id8"/>
 			<label kind="synchronisation" x="-76" y="-272">Transport[0]!</label>
-		</transition>
-		<transition>
-			<source ref="id5"/>
-			<target ref="id4"/>
-			<label kind="synchronisation" x="-85" y="-42">work[6]!</label>
 		</transition>
 		<transition>
 			<source ref="id6"/>
 			<target ref="id5"/>
-			<label kind="synchronisation" x="-85" y="-110">work[3]!</label>
+			<label kind="synchronisation" x="-85" y="-42">work[6]!</label>
+			<label kind="assignment" x="-76" y="-17">done = true</label>
 		</transition>
 		<transition>
 			<source ref="id7"/>
 			<target ref="id6"/>
+			<label kind="synchronisation" x="-85" y="-110">work[3]!</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id7"/>
 			<label kind="synchronisation" x="-85" y="-187">work[2]!</label>
 		</transition>
 	</template>
 	<system>// Place template instantiations here.
-int a0[10] = {1, 111, 111, 1111, 111, 111, 111, 111, 111, 111};
 
-Process0 = Modul(0,0, a0, 1);
-//Process1 = Modul(1,1,{2});
-//Process2 = Modul(2,2,{3});
-//Process3 = Modul(3,3,{4});
-//Process4 = Modul(4,4,{5,8});
-//Process5 = Modul(5,4,{6});
-//Process6 = Modul(6,5,{7});
-//Process7 = Modul(7,4,{8});
-//Process8 = Modul(8,6,{0});
-
+int a0[4] = {1, -1, -1, -1};
+int a1[4] = {2, -1, -1, -1};
+int a2[4] = {3, -1, -1, -1};
+int a3[4] = {4, -1, -1, -1};
+int a4[4] = {5, 7, -1, -1};
+int a5[4] = {6, -1, -1, -1};
+int a6[4] = {-1, -1, -1, -1};
+int a7[4] = {8, -1, -1, -1};
+int a8[4] = {9, -1, -1, -1};
+int a9[4] = {5, -1, -1, -1};
+Process0 = Modul(0,0,5, a0, 1);
+Process1 = Modul(1,1, 5 ,a1, 1);
+Process2 = Modul(2,2,5,a2, 1);
+Process3 = Modul(3,3,5,a3, 1);
+Process4 = Modul(4,4,5,a4, 2);
+Process5 = Modul(5,3,5,a5, 1);
+Process6 = Modul(6,6,5,a6, 1);
+Process7 = Modul(7,3,5,a7, 1);
+Process8 = Modul(8,5,5,a8, 1);
+Process9 = Modul(9,3,5,a9, 1);
 recipe = Recipe();
 
 // List one or more processes to be composed into a system.
-system recipe, Process0;//, Process1, Process2, Process3, Process4, Process5, Process6, Process7, Process8;
+system recipe, Process0, Process1, Process2, Process3, Process4, Process5, Process6, Process7, Process8, Process9;
     </system>
 	<queries>
+		<query>
+			<formula>E&lt;&gt; (recipe.done == true)
+			</formula>
+			<comment>
+			</comment>
+		</query>
 	</queries>
 </nta>
