@@ -3,12 +3,15 @@ class Module:
   Represents a module in the Festo system
   """
 
-  def __init__(self, module_id, connections, num_of_connections):
+  def __init__(self, module_id, connections, num_of_connections, work_type, processing_time, transport_time):
     """
     :param module_id: A unique identifier for the module
     :param connections: A list of IDs, which the module connects to.
                         This can include values, other than the connections, as long as num_of_connections is specified
     :param num_of_connections: The number of connections for the module
+    :param work_type: An identifier for the work type of the module (integer)
+    :param processing_time: An integer specifying the processing time of the module
+    :param transport_time: An integer specifying the transport time of the module
     """
     # TODO Not sure if num_of_connections is really needed. We only use it here for verification purposes (We have it from uppaal anyway)
     if num_of_connections > len(connections):
@@ -16,6 +19,9 @@ class Module:
     self.module_id = module_id
     self.connections = connections
     self.num_of_connections = num_of_connections
+    self.work_type = work_type
+    self.processing_time = processing_time
+    self.transport_time = transport_time
 
   def get_connections(self):
     """
