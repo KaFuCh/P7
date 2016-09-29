@@ -3,7 +3,7 @@ class Module:
   Represents a module in the Festo system
   """
 
-  def __init__(self, module_id, connections, num_of_connections, work_type, processing_time, transport_time):
+  def __init__(self, module_id, work_type, processing_time, transport_time, cost_rate, connections):
     """
     :param module_id: A unique identifier for the module
     :param connections: A list of IDs, which the module connects to.
@@ -13,13 +13,15 @@ class Module:
     :param processing_time: An integer specifying the processing time of the module
     :param transport_time: An integer specifying the transport time of the module
     """
-    # TODO Not sure if num_of_connections is really needed. We only use it here for verification purposes (We have it from uppaal anyway)
-    if num_of_connections > len(connections):
-      del self
-    self.module_id = module_id
+
+    if module_id == 0:
+      raise ValueError("Module_id may not be set to 0")
+    else:
+      self.module_id = module_id
     self.connections = connections
-    self.num_of_connections = num_of_connections
+    self.num_of_connections = len(connections)
     self.work_type = work_type
+    self.cost_rate = cost_rate
     self.processing_time = processing_time
     self.transport_time = transport_time
 
@@ -85,3 +87,4 @@ class Configuration:
     if not self.contains_only_one_line():  # Check if module contains more than 1 production line
       return False
     return True
+

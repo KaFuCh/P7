@@ -15,7 +15,7 @@ def run_verifyta(xml, queries, *args, verifyta='./verifyta'):
     return res.stdout, res.stderr   # Result, Trace
 
 
-def get_trace_time(trace, clock_name='y'):
+def get_trace_time(trace, clock_name='global_c'):
     """
     :param trace: The trace represented as bytes given by uppaal, from which we find the last value of a global clock.
     :param clock_name: A string representing the name of the global clock from which we will extract a value

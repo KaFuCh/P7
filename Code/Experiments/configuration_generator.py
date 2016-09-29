@@ -2,7 +2,7 @@ from Experiments.configuration import Module, Configuration
 from Experiments.xml_generator import create_model_xml
 
 
-def generate_xml(template_file, modules, recipes):
+def generate_xml(template_file, modules, recipes, new_file_name="test.xml"):
   """
   Creates an xml file readable by uppaal.
   :param template_file: A file template to base the new file one
@@ -14,10 +14,10 @@ def generate_xml(template_file, modules, recipes):
 
   system_string = generate_module_declarations(modules)
   for i in range(len(recipes)):
-    system_string += generate_recipe_declaration(i, recipes[i])
+    system_string += generate_recipe_declaration(i + 1, recipes[i])
 
   system_string += "rem = Remover();\n"
-  system_string += "cos = Coster();\n"
+  system_string += "cos = Coster(1);\n"
   system_string += generate_system_declaration(len(modules), len(recipes))
 
   S = set()
@@ -29,7 +29,7 @@ def generate_xml(template_file, modules, recipes):
   global_decl_string = generate_global_declarations(len(modules), number_of_worktypes, len(recipes))
 
   replace_dict = {"system": system_string, "declaration": global_decl_string}  # TODO generate different connections for the modules and make an xml file for each
-  create_model_xml(template_file, replace_dict, "test.xml")
+  create_model_xml(template_file, replace_dict, new_file_name)
 
 
 def generate_global_declarations(number_of_modules, number_of_worktypes, number_of_recipes):
@@ -45,15 +45,15 @@ def generate_global_declarations(number_of_modules, number_of_worktypes, number_
   s += "const int NUMBER_OF_WORKTYPES = " + str(number_of_worktypes) + ";\n"
   s += "const int NUMBER_OF_RECIPES = " + str(number_of_recipes) + ";\n\n"
 
-  s += """chan transport[NUMBER_OF_MODULES];
-chan work[NUMBER_OF_WORKTYPES];
-chan handshake[NUMBER_OF_RECIPES];
+  s += """chan transport[NUMBER_OF_MODULES + 1];
+chan work[NUMBER_OF_WORKTYPES + 1];
+chan handshake[NUMBER_OF_RECIPES + 1];
 
 clock global_c;
 
-typedef int[-1, NUMBER_OF_RECIPES - 1] rid_t;
-typedef int[0, NUMBER_OF_WORKTYPES - 1] wid_t;
-typedef int[0, NUMBER_OF_MODULES - 1] id_t;
+typedef int[-1, NUMBER_OF_RECIPES] rid_t;
+typedef int[0, NUMBER_OF_WORKTYPES] wid_t;
+typedef int[0, NUMBER_OF_MODULES] id_t;
 
 rid_t var = 0;
 
@@ -85,15 +85,18 @@ def generate_module_declarations(modules):
     s = s[:-2]  # remove last comma and space, added in loop
     s += "};\n"
 
+  s += "\n"
   for module in modules:  # Define processes
     s += "m" + str(module.module_id) + \
          " = Module(" + str(module.module_id) + \
          ", " + str(module.work_type) + \
          ", " + str(module.processing_time) + \
          ", " + str(module.transport_time) + \
+         ", " + str(module.cost_rate) + \
          ", " + "connections" + str(module.module_id) + \
          ", " + str(module.num_of_connections) + ");\n"
 
+  s += "\n\n"
   return s
 
 
@@ -126,7 +129,7 @@ def generate_recipe_declaration(id, dependencies):
         else:
             s += str(len(dependencies[i]))
     s += "};\n\n"
-    s += "r" + str(id) + " = Recipe(" + str(id) + ", " + "deps" + str(id) + ", " + "lengths" + str(id) + ", " + str(len(dependencies)) + ");"
+    s += "r" + str(id) + " = Recipe(" + str(id) + ", " + "deps" + str(id) + ", " + "lengths" + str(id) + ", " + str(len(dependencies)) + ");\n\n"
 
     return s
 
@@ -134,10 +137,21 @@ def generate_recipe_declaration(id, dependencies):
 def generate_system_declaration(number_of_modules, number_of_recipes):
   s = "system rem, cos"
   for i in range(number_of_modules):  # add processes/modules to system definition
-    s += ", m" + str(i)
+    s += ", m" + str(i + 1)
 
   for i in range(number_of_recipes):
-    s += ", r" + str(i)
+    s += ", r" + str(i + 1)
 
   s += ";"
   return s
+
+def query_generator(number_of_recipes, new_file_name="test.q"):
+  s = "E<> "
+  for i in range(number_of_recipes):
+    if i +1 != 1:
+      s += " && "
+    s += "r" + str(i +1) + ".done"
+  f = open(new_file_name, 'w')
+  f.write(s)
+  f.close()
+
