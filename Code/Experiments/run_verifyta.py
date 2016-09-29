@@ -34,3 +34,4 @@ def get_best_cost(result):
     s = str(lst[-2])
     res = re.search(' -- Best solution   : (\d+)', s).group(1)
     return int(res)
+
