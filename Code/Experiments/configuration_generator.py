@@ -4,8 +4,8 @@ from Experiments.xml_generator import create_model_xml
 
 def generate_configurations(template_file, modules):
   """
-  Creates an xml file readable by uppaal.
-  :param template_file: A file template to base the new file one
+  Creates an xml file, which can be opened by uppaal.
+  :param template_file: A file template to base the new file on
   :param modules: The modules in the system
   :return: nothing
   """
@@ -17,10 +17,9 @@ def generate_system_declaration(modules):
   """
   Generates a system declaration readable by uppaal
   :param modules: The modules in the system
-  :return: the system declaration as a string
+  :return: the system declaration as a string. False if a module has more than 4 connections
   """
   s = ""
-
   for module in modules:  # Define connections
     s += "int connections" + str(module.module_id) + "[4] = {"  # TODO a module has a maximum of 4 connections
     if len(module.get_connections()) > 4:
