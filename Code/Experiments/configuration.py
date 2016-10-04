@@ -6,34 +6,33 @@ class Module:
   Represents a module in the Festo system
   """
 
-  def __init__(self, module_id, connections, num_of_connections, work_type, processing_time, transport_time):
+  def __init__(self, module_id, work_type, processing_time, transport_time, cost_rate, connections):
     """
     :param module_id: A unique identifier for the module
     :param connections: A list of IDs, which the module connects to.
-                        This can include values, other than the connections, as long as num_of_connections is specified
-    :param num_of_connections: The number of connections for the module
     :param work_type: An identifier for the work type of the module (integer)
     :param processing_time: An integer specifying the processing time of the module
     :param transport_time: An integer specifying the transport time of the module
     """
-    # TODO Not sure if num_of_connections is really needed. We only use it here for verification purposes (We have it from uppaal anyway)
-    if num_of_connections > len(connections):
-      del self
-    self.module_id = module_id
+
+    if module_id == 0:
+      raise ValueError("Module_id may not be set to 0")
+    else:
+      self.module_id = module_id
     self.connections = connections
-    self.num_of_connections = num_of_connections
+    self.num_of_connections = len(connections)
     self.work_type = work_type
+    self.cost_rate = cost_rate
     self.processing_time = processing_time
     self.transport_time = transport_time
 
   def __eq__(self, other):
       if isinstance(other, self.__class__):
-          return self.module_id == other.module_id and \
-                 self.connections == other.connections and \
-                 self.num_of_connections == other.num_of_connections and \
-                 self.work_type == other.work_type and \
-                 self.processing_time == other.processing_time and \
-                 self.transport_time == other.transport_time
+        equal = True
+        for attr in self.__dict__:
+          if attr not in other.__dict__:
+            equal = False
+        return equal
       else:
           return False
 

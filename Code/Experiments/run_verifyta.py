@@ -12,18 +12,20 @@ def run_verifyta(xml, queries, *args, verifyta='./verifyta'):
     :return 1: Returns the trace(s) of the queries.
     """
     res = subprocess.run([verifyta, xml, queries] + list(args), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    return res.stdout, res.stderr
+    return res.stdout, res.stderr   # Result, Trace
 
-def get_trace_time(trace, clock_name='y'):
+
+def get_trace_time(trace, clock_name='global_c'):
     """
     :param trace: The trace represented as bytes given by uppaal, from which we find the last value of a global clock.
     :param clock_name: A string representing the name of the global clock from which we will extract a value
     :return: An integer representing the last clock value
     """
     lst = trace.splitlines()
-    s = str(lst[-1])
+    s = str(lst[-1])    # The information we want is on the last line
     res = re.search(clock_name + ">=(\d+)", s).group(1)
     return int(res)
+
 
 def get_best_cost(result):
     """
@@ -31,6 +33,7 @@ def get_best_cost(result):
     :return: An integer representing the best cost
     """
     lst = result.splitlines()
-    s = str(lst[-2])
+    s = str(lst[-2])    # The information we want is on the second last line
     res = re.search(' -- Best solution   : (\d+)', s).group(1)
     return int(res)
+
