@@ -100,9 +100,8 @@ def weighted_choice(choices):
         total += w
         cum_weights.append(total)
     x = random.random() * total
-    i = bisect.bisect(cum_weights, x)
-    return values[i], weights[i], i     # TODO Sometimes out of bounds, figure out why and fix
-
+    i = bisect.bisect_left(cum_weights, x)
+    return values[i], weights[i], i
 
 def crossover(p1, p2):
     child = {}
