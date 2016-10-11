@@ -78,12 +78,15 @@ def generate_configuration(modules):
 
         x = random() * total
         i = bisect_left(cum_weights, x)
-        configuration[m] = list(selectable_neighbours_combo[i])
+        configuration[m] = set(selectable_neighbours_combo[i])
 
     # Adds a single exit point to the configuration
-    configuration[choice(module_ids)].append(0)
+    configuration[choice(module_ids)].add(0)
 
-    return configuration
+    for m in modules:
+        m.set_connections(configuration)
+
+    return  configuration
 
 recipes = [[[1, 2], [3, 4]],
            [[1, 2], [3, 4]]]
@@ -192,6 +195,7 @@ start_population = []
 
 generate_query(len(recipes), 'temp.q')
 
+"""
 print('Making start population')
 for config in start_configs:
     print('Verifying: ' + str(config))
@@ -211,7 +215,7 @@ def get_fitness(configuration):
     return fitness
 
 print('Starting GA')
-pop = genetic_algorithm(start_population, 1000, 20, get_fitness)
+#pop = genetic_algorithm(start_population, 1000, 20, get_fitness)
 
 best_config = {1: [2, 3],   # work 1
                2: [4],   # work 2
@@ -224,3 +228,4 @@ for m in mlist:
     m.set_connections(best_config)
 
 x = get_fitness(best_config)
+"""

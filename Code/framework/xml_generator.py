@@ -73,8 +73,6 @@ def generate_module_declarations(modules):
   s = ""
   for module in modules:  # Define connections
     s += "int connections" + str(module.module_id) + "[4] = {"  # TODO a module has a maximum of 4 connections
-    if len(module.get_connections()) > 4:           # TODO Det er ulækkert
-      return False
     for index in module.get_connections():
       s += str(index) + ", "
 
