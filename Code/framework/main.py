@@ -7,6 +7,41 @@ from bisect import bisect_left
 from itertools import combinations
 from bisect import bisect_left
 
+def get_island(start_module, configuration):
+    """
+    A Fuglsang inspired method <3
+    For a given starting module we return a list of all modules connected to this set
+    :param start_module: Id of the module from which the search starts
+    :param configuration: Factory configuration as a list of sets.
+    :return: List of all modules connected to the starting module
+    """
+
+    reached_modules = [start_module]
+    flag = False
+
+    # Continues building the list until it can't be expanded no more
+    while not flag:
+        reached_modules_copy = reached_modules.copy()
+
+        # Add all modules, that reached modules connect to
+        for module in reached_modules_copy:
+            reached_modules = reached_modules + [x for x in configuration.keys()
+                                             if x in configuration[module]
+                                             and x not in reached_modules]
+
+        # Add all modules that connect to reached modules
+        for module in configuration.keys():
+           if module not in reached_modules:
+             for reached_module in reached_modules_copy:
+               if reached_module in configuration[module]:
+                 reached_modules.append(module)
+
+        # When the last iteration added no new modules
+        if len(reached_modules) == len(reached_modules_copy):
+            flag = True
+
+    return reached_modules
+
 def generate_configuration(modules):
     """
     From a list of modules a random FESTO factory configuration is generated
@@ -80,13 +115,67 @@ def generate_configuration(modules):
         i = bisect_left(cum_weights, x)
         configuration[m] = set(selectable_neighbours_combo[i])
 
-    # Adds a single exit point to the configuration
-    configuration[choice(module_ids)].add(0)
+    # From here we handle the case, where the configuration is not a single product line, but connected as islands
+    id_list = list(configuration.keys())
+    island_list = []
 
+    # Creates an island list, grouping together module ids into individual islands
+    while id_list:
+        island = get_island(choice(id_list), configuration)
+        island_list.append(island)
+        id_list = [x for x in id_list if x not in island]
+
+    # TODO: Randomize the order in which we search
+    # Adds connections until we have just 1 island across the configuration
+    while len(island_list) != 1:
+        #Randomly chooses a pair of islands to try and connect
+        pair = choice(list(combinations(island_list, 2))) # TODO: Make sure we do not redo combinations
+        neighbours = []
+        for x in pair[0]:
+            possible_neighbours = []
+
+            # Get position of module id from the earlier placed_modules dictionary
+            for pos, module_id in placed_modules.items():
+                if module_id == x:
+                    pos_x = pos[0]
+                    pos_y = pos[1]
+
+                    # Finds all possible neighbours to x
+                    if (pos_x - 1, pos_y) in placed_modules.keys():
+                        possible_neighbours.append(placed_modules[(pos_x - 1, pos_y)])
+
+                    if (pos_x + 1, pos_y) in placed_modules.keys():
+                        possible_neighbours.append(placed_modules[(pos_x + 1, pos_y)])
+
+                    if (pos_x, pos_y - 1) in placed_modules.keys():
+                        possible_neighbours.append(placed_modules[(pos_x, pos_y - 1)])
+
+                    if (pos_x, pos_y + 1) in placed_modules.keys():
+                        possible_neighbours.append(placed_modules[(pos_x, pos_y + 1)])
+
+                    # Saves all possible neighbours from x that are part of the second island
+                    for y in pair[1]:
+                        if y in possible_neighbours:
+                            neighbours.append((x,y))
+
+        # Randomly chooses a connection between the 2 islands.
+        # Then updates the island list with to include the new larger island.
+        if neighbours:
+            chosen = choice(neighbours) # TODO: Make it possible to add more than one connection based on possibility
+            configuration[chosen[0]].add(chosen[1]) # TODO: 50% chance for flipping the connection the other way.
+
+            island_list.remove(pair[0])
+            island_list.remove(pair[1])
+            island_list.append(pair[0] + pair[1])
+
+    # Adds a single exit point to the configuration
+    configuration[choice(module_ids)].add(0) # TODO: Make it possible to add more exit points
+
+    # Sets connections in modules based on configuration
     for m in modules:
         m.set_connections(configuration)
 
-    return  configuration
+    return configuration
 
 recipes = [[[1, 2], [3, 4]],
            [[1, 2], [3, 4]]]
@@ -229,3 +318,5 @@ for m in mlist:
 
 x = get_fitness(best_config)
 """
+
+print(generate_configuration(mlist))
