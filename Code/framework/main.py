@@ -42,6 +42,27 @@ def get_island(start_module, configuration):
 
     return reached_modules
 
+
+def weighted_random_select(select_list):
+    """
+    Does a weighted select on a list of element.
+    The larger the element, the less chance it has of being chosen
+    :param select_list: List of elements to select from
+    :return: Selected element from list
+    """
+    total = 0
+    cum_weights = []
+
+    # Adds weights based on length
+    for x in select_list:
+        total += 1 / len(x)
+        cum_weights.append(total)
+
+    # Chooses element and returns
+    x = random() * total
+    return select_list[bisect_left(cum_weights, x)]
+
+
 def generate_configuration(modules):
     """
     From a list of modules a random FESTO factory configuration is generated
@@ -103,17 +124,8 @@ def generate_configuration(modules):
         for i in range(1, len(selectable_neighbours) + 1):
             selectable_neighbours_combo = selectable_neighbours_combo + (list(combinations(selectable_neighbours, i)))
 
-        # Generates a cummulative possibility over combinations and chooses one of them
-        total = 0
-        cum_weights = []
+        configuration[m]  = set(weighted_random_select(selectable_neighbours_combo))
 
-        for x in selectable_neighbours_combo:
-            total += 1 / len(x)
-            cum_weights.append(total)
-
-        x = random() * total
-        i = bisect_left(cum_weights, x)
-        configuration[m] = set(selectable_neighbours_combo[i])
 
     # From here we handle the case, where the configuration is not a single product line, but connected as islands
     id_list = list(configuration.keys())
@@ -125,11 +137,17 @@ def generate_configuration(modules):
         island_list.append(island)
         id_list = [x for x in id_list if x not in island]
 
-    # TODO: Randomize the order in which we search
     # Adds connections until we have just 1 island across the configuration
+    used_combinations = []
+
     while len(island_list) != 1:
-        #Randomly chooses a pair of islands to try and connect
-        pair = choice(list(combinations(island_list, 2))) # TODO: Make sure we do not redo combinations
+        # Randomly chooses a pair of islands to try and connect
+        pair = ()
+        while not pair or pair in used_combinations:
+            pair = choice(list(combinations(island_list, 2)))
+
+        used_combinations.append(pair)
+
         neighbours = []
         for x in pair[0]:
             possible_neighbours = []
@@ -140,6 +158,7 @@ def generate_configuration(modules):
                     pos_x = pos[0]
                     pos_y = pos[1]
 
+                    # TODO: Make subfunction to generate positions so that it's more elegangt to make all these checks in a loop
                     # Finds all possible neighbours to x
                     if (pos_x - 1, pos_y) in placed_modules.keys():
                         possible_neighbours.append(placed_modules[(pos_x - 1, pos_y)])
@@ -156,13 +175,21 @@ def generate_configuration(modules):
                     # Saves all possible neighbours from x that are part of the second island
                     for y in pair[1]:
                         if y in possible_neighbours:
-                            neighbours.append((x,y))
+                            neighbours.append((x, y))
 
         # Randomly chooses a connection between the 2 islands.
         # Then updates the island list with to include the new larger island.
         if neighbours:
-            chosen = choice(neighbours) # TODO: Make it possible to add more than one connection based on possibility
-            configuration[chosen[0]].add(chosen[1]) # TODO: 50% chance for flipping the connection the other way.
+            chosen_connections = [weighted_random_select(neighbours)]
+
+            # Inserts selected connections in the configuration
+            # 50% chance of flipping connection direction
+            for connection in chosen_connections:
+                x = random()
+                if x <= 0.5:
+                    connection = connection[::-1]
+
+                configuration[connection[0]].add(connection[1])
 
             island_list.remove(pair[0])
             island_list.remove(pair[1])
