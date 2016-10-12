@@ -36,7 +36,7 @@ def get_island(start_module, configuration):
                if reached_module in configuration[module]:
                  reached_modules.append(module)
 
-        # When the last iteration added no new modules
+        # When the last iteration added no new modules exit loop
         if len(reached_modules) == len(reached_modules_copy):
             flag = True
 
@@ -63,11 +63,14 @@ def weighted_random_select(select_list):
     return select_list[bisect_left(cum_weights, x)]
 
 
+def get_adjacent_positions(x,y):
+    return [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
+
 def generate_configuration(modules):
     """
     From a list of modules a random FESTO factory configuration is generated
     :param modules: A list of FESTO modules that do not have any connections yet
-    :return: A factory configuration in the form of a dictionary of lists
+    :return: A factory configuration in the form of a dictionary of sets
     """
     configuration = {}
     for m in modules:
@@ -78,7 +81,7 @@ def generate_configuration(modules):
 
     # Placing the first module at center point
     placed_modules = {}
-    x = choice(module_ids)
+    x = choice(copy_module_ids)
     copy_module_ids.remove(x)
     placed_modules[(0, 0)] = x
 
@@ -89,11 +92,7 @@ def generate_configuration(modules):
         for pos in list(placed_modules.keys()):
             x = pos[0]
             y = pos[1]
-
-            selectable.append((x - 1, y))
-            selectable.append((x + 1, y))
-            selectable.append((x, y - 1))
-            selectable.append((x, y + 1))
+            selectable = selectable + get_adjacent_positions(x,y)
 
         # Randomly chooses one of the selectable positions and places down the module
         shuffle(selectable)
@@ -107,11 +106,7 @@ def generate_configuration(modules):
         possible_neighbours = []
         x = pos[0]
         y = pos[1]
-
-        possible_neighbours.append((x - 1, y))
-        possible_neighbours.append((x + 1, y))
-        possible_neighbours.append((x, y - 1))
-        possible_neighbours.append((x, y + 1))
+        possible_neighbours = get_adjacent_positions(x,y)
 
         # Does not pick positions where no neighbour exists
         selectable_neighbours = []
@@ -125,7 +120,6 @@ def generate_configuration(modules):
             selectable_neighbours_combo = selectable_neighbours_combo + (list(combinations(selectable_neighbours, i)))
 
         configuration[m]  = set(weighted_random_select(selectable_neighbours_combo))
-
 
     # From here we handle the case, where the configuration is not a single product line, but connected as islands
     id_list = list(configuration.keys())
@@ -157,20 +151,10 @@ def generate_configuration(modules):
                 if module_id == x:
                     pos_x = pos[0]
                     pos_y = pos[1]
-
-                    # TODO: Make subfunction to generate positions so that it's more elegangt to make all these checks in a loop
-                    # Finds all possible neighbours to x
-                    if (pos_x - 1, pos_y) in placed_modules.keys():
-                        possible_neighbours.append(placed_modules[(pos_x - 1, pos_y)])
-
-                    if (pos_x + 1, pos_y) in placed_modules.keys():
-                        possible_neighbours.append(placed_modules[(pos_x + 1, pos_y)])
-
-                    if (pos_x, pos_y - 1) in placed_modules.keys():
-                        possible_neighbours.append(placed_modules[(pos_x, pos_y - 1)])
-
-                    if (pos_x, pos_y + 1) in placed_modules.keys():
-                        possible_neighbours.append(placed_modules[(pos_x, pos_y + 1)])
+                    pos_list = get_adjacent_positions(pos_x,pos_y)
+                    for p in pos_list:
+                        if p in placed_modules.keys():
+                            possible_neighbours.append(placed_modules[p])
 
                     # Saves all possible neighbours from x that are part of the second island
                     for y in pair[1]:
@@ -178,7 +162,7 @@ def generate_configuration(modules):
                             neighbours.append((x, y))
 
         # Randomly chooses a connection between the 2 islands.
-        # Then updates the island list with to include the new larger island.
+        # Then updates the island list to include the new larger island.
         if neighbours:
             chosen_connections = [weighted_random_select(neighbours)]
 
@@ -196,13 +180,13 @@ def generate_configuration(modules):
             island_list.append(pair[0] + pair[1])
 
     # Adds a single exit point to the configuration
-    configuration[choice(module_ids)].add(0) # TODO: Make it possible to add more exit points
+    configuration[choice(module_ids)].add(0)  # TODO: Make it possible to add more exit points
 
     # Sets connections in modules based on configuration
     for m in modules:
         m.set_connections(configuration)
 
-    return configuration
+    return Configuration(modules).is_valid(), configuration
 
 recipes = [[[1, 2], [3, 4]],
            [[1, 2], [3, 4]]]
