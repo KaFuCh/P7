@@ -1,7 +1,7 @@
 from unittest import TestCase
 from hypothesis import given, assume, settings, strategies as st
 from Experiments.configuration import Module
-from Experiments.configuration import Configuration
+from Experiments.configuration import contains_only_one_line, get_paths, create_dependencies, is_placeable, is_valid
 
 
 @st.composite
@@ -19,7 +19,7 @@ def modules(draw):
 def configurations(draw, min_num_of_modules=0):
   mods = draw(st.lists(modules()))
   assume(len(mods) >= min_num_of_modules)
-  return Configuration(mods)
+  return mods
 
 
 @st.composite  # TODO Generate connected configurations
@@ -34,7 +34,7 @@ def proper_configurations(draw, num_of_modules):
     cons = draw(st.lists(st.integers(min_value=i, max_value=num_of_modules).filter(lambda x: x != i),
                          max_size=4, unique=True))
     mods.append(Module(m_id, w_type, p_time, t_time, c_rate, cons))
-  return Configuration(mods)
+  return mods
 
 
 class TestModule(TestCase):
@@ -58,17 +58,17 @@ class TestModule(TestCase):
 
 class TestConfiguration(TestCase):
   @given(configurations())
-  def test_contains_only_one_line_correct_type(self, conf):
-    assert isinstance(conf.contains_only_one_line(), bool)
+  def test_contains_only_one_line_correct_type(self, mods):
+    assert isinstance(contains_only_one_line(mods), bool)
 
   @given(configurations())
-  def test_contains_only_one_line_always_same_answer(self, conf):
-    assert conf.contains_only_one_line() == conf.contains_only_one_line()
+  def test_contains_only_one_line_always_same_answer(self, mods):
+    assert contains_only_one_line(mods) == contains_only_one_line(mods)
 
-  @given(proper_configurations(num_of_modules=3))
-  def test_get_paths_correct_type(self, conf):
-    print("start\n" + str(proper_configurations(3).example()))
-    paths = conf.get_paths(conf.modules[0], [[conf.modules[0]]])
+  @given(proper_configurations(num_of_modules=4))
+  def test_get_paths_correct_type(self, mods):
+    print("start\n" + str(mods))
+    paths = get_paths(mods, mods[0], [[mods[0]]])
     assert isinstance(paths, list)
     for path in paths:
       assert isinstance(path, list)
