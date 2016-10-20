@@ -39,6 +39,19 @@ class Module:
   def __ne__(self, other):
       return not self.__eq__(other)
 
+  def __str__(self):
+    s = ""
+    s += "Module {module_id: " + str(self.module_id) + ", "
+    s += "connections: ["
+    for con in self.connections:
+      s += str(con) + ", "
+    if len(self.connections) != 0:
+      s = s[:-2]
+    return s + "]}"
+
+  def __repr__(self):
+    return str(self)
+
   def get_connections(self):
     """
     :return: A list of IDs, which the module connects to
@@ -58,6 +71,17 @@ class Configuration:
     :param modules: A list of modules, which the Configuration consists of
     """
     self.modules = modules
+
+  def __str__(self):
+    if len(self.modules) == 0:
+      return "Configuration {}"
+    s = "Configuration\n  {\n"
+    for mod in self.modules:
+      s += "    " + str(mod) + "\n"
+    return s + "  }"
+
+  def __repr__(self):
+    return str(self)
 
   def contains_only_one_line(self):
     """
