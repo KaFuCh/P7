@@ -20,7 +20,6 @@ class Module:
     else:
       self.module_id = module_id
     self.connections = connections
-    self.num_of_connections = len(connections)
     self.work_type = work_type
     self.cost_rate = cost_rate
     self.processing_time = processing_time
@@ -28,23 +27,22 @@ class Module:
 
   def __eq__(self, other):
       if isinstance(other, self.__class__):
-        equal = True
-        for attr in self.__dict__:
-          if attr not in other.__dict__:
-            equal = False
-        return equal
+        return self.__dict__ == other.__dict__
       else:
           return False
 
   def __ne__(self, other):
       return not self.__eq__(other)
 
+  def __hash__(self):
+    return hash(tuple(sorted(self.__dict__)))
+
   def __str__(self):
     s = ""
-    s += "Module {module_id: " + str(self.module_id) + ", "
+    s += "{module_id: " + str(self.module_id) + ", "
     s += "connections: ["
     for con in self.connections:
-      s += str(con) + ", "
+      s += str(con.module_id) + ", "
     if len(self.connections) != 0:
       s = s[:-2]
     return s + "]}"
@@ -57,12 +55,12 @@ class Module:
     :return: A list of IDs, which the module connects to
     """
     res = []
-    for i in range(0, self.num_of_connections):
-      res.append(self.connections[i])
+    for i in range(0, len(self.connections)):
+      res.append(self.connections[i].module_id)
     return res
-#
-#
-# class Configuration:
+
+
+# class Configuration: #Outdated #SoLastYear #360NoScopeRefactor #420BlazeIT
 #   """
 #   Represents a configuration of the Festo system, i.e. a collection of modules
 #   """

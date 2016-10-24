@@ -2,6 +2,8 @@ from unittest import TestCase
 from hypothesis import given, assume, settings, strategies as st
 from Experiments.configuration import Module
 from Experiments.configuration import contains_only_one_line, get_paths, create_dependencies, is_placeable, is_valid
+import random
+from copy import deepcopy
 
 
 @st.composite
@@ -11,7 +13,7 @@ def modules(draw):
   p_time = draw(st.integers())
   t_time = draw(st.integers())
   c_rate = draw(st.integers(min_value=0))
-  cons = draw(st.lists(st.integers(), max_size=4))
+  cons = []
   return Module(m_id, w_id, p_time, t_time, c_rate, cons)
 
 
@@ -22,26 +24,55 @@ def configurations(draw, min_num_of_modules=0):
   return mods
 
 
-@st.composite  # TODO Generate connected configurations
-def proper_configurations(draw, num_of_modules):
+@st.composite
+def proper_configurations(draw):
+  num_of_modules = random.randint(2, 10)
   mods = []
-  for i in range(1, num_of_modules+1):
+  for i in range(1, num_of_modules + 1):
     m_id = i
     w_type = draw(st.integers())
     p_time = draw(st.integers())
     t_time = draw(st.integers())
     c_rate = draw(st.integers())
-    cons = draw(st.lists(st.integers(min_value=i, max_value=num_of_modules).filter(lambda x: x != i),
-                         max_size=4, unique=True))
-    mods.append(Module(m_id, w_type, p_time, t_time, c_rate, cons))
+    # cons = draw(st.lists(st.integers(min_value=i, max_value=num_of_modules).filter(lambda x: x != i), max_size=4, unique=True))
+    mods.append(Module(m_id, w_type, p_time, t_time, c_rate, []))
+
+  modules_without_connections = deepcopy(mods)
+  current_module = random.choice(modules_without_connections)
+  modules_without_connections.remove(current_module)
+
+  while len(modules_without_connections) > 0:
+    if len(current_module.connections) < 4:
+      random_choice = random.choice(modules_without_connections)
+      current_module.connections.append(random_choice)
+      mods[mods.index(next(mod for mod in mods if mod.module_id == current_module.module_id))] = current_module
+      modules_without_connections.remove(random_choice)
+    if len(current_module.connections) == 4:
+      current_module = random.choice(current_module.connections)
   return mods
 
 
 class TestModule(TestCase):
   @given(modules())
+  def test_module_equality(self, mod1, mod2):
+    mod1_cpy = deepcopy(mod1)
+    mod2_cpy = deepcopy(mod2)
+    assert mod1 == mod1_cpy
+    assert mod2 == mod2_cpy
+    if mod1.module_id == mod2.module_id and \
+                    mod1.connections == mod2.connections and \
+                    mod1.num_of_connections == mod2.num_of_connections and \
+                    mod1.work_type == mod2.worktype and \
+                    mod1.cost_rate == mod2.cost_rate and \
+                    mod1.processing_time == mod2.processing_time and \
+                    mod1.transport_time == mod2.transport_time:
+      assert mod1 == mod2
+    else:
+      assert not mod1 == mod2
+
+  @given(modules())
   def test_get_connections_correct_length(self, mod):
-    assert mod.num_of_connections == len(mod.get_connections())
-    assert mod.num_of_connections == len(mod.connections)
+    assert len(mod.get_connections()) == len(mod.connections)
 
   @given(modules())
   def test_get_connections_correct_type(self, mod):
@@ -65,9 +96,12 @@ class TestConfiguration(TestCase):
   def test_contains_only_one_line_always_same_answer(self, mods):
     assert contains_only_one_line(mods) == contains_only_one_line(mods)
 
-  @given(proper_configurations(num_of_modules=4))
+  @given(proper_configurations())
+  def test_proper_configurations_always_create_connected_configurations(self, mods):
+    assert contains_only_one_line(mods)
+
+  @given(proper_configurations())
   def test_get_paths_correct_type(self, mods):
-    print("start\n" + str(mods))
     paths = get_paths(mods, mods[0], [[mods[0]]])
     assert isinstance(paths, list)
     for path in paths:
