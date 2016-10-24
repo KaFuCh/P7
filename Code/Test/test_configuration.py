@@ -5,7 +5,7 @@ from unittest import TestCase
 from hypothesis import given, assume, strategies as st
 
 from module import Module
-from module import contains_only_one_line, get_paths
+from Validation.configuration_validation import contains_only_one_line, get_paths
 
 
 @st.composite
