@@ -1,4 +1,3 @@
-from Experiments.configuration import Module, Configuration
 from Experiments.xml_generator import create_model_xml
 
 

@@ -1,9 +1,11 @@
-from unittest import TestCase
-from hypothesis import given, assume, settings, strategies as st
-from Experiments.configuration import Module
-from Experiments.configuration import contains_only_one_line, get_paths, create_dependencies, is_placeable, is_valid
 import random
 from copy import deepcopy
+from unittest import TestCase
+
+from hypothesis import given, assume, strategies as st
+
+from module import Module
+from module import contains_only_one_line, get_paths
 
 
 @st.composite
