@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?><!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'><nta><declaration>const int NUMBER_OF_MODULES = 4;
 const int NUMBER_OF_WORKTYPES = 4;
 const int NUMBER_OF_RECIPES = 1;
-const int N_OF_NOD = 4;
+const int N_OF_NOD1 = 4;
 
 chan transport[NUMBER_OF_MODULES + 1];
 chan work[NUMBER_OF_WORKTYPES + 1];
@@ -12,21 +12,10 @@ clock global_c;
 typedef int[-1, NUMBER_OF_RECIPES] rid_t;
 typedef int[0, NUMBER_OF_WORKTYPES] wid_t;
 typedef int[0, NUMBER_OF_MODULES] id_t;
-typedef int[0, N_OF_NOD] nid_t;
 
 rid_t var = 0;
 
 meta int remaining = 0;
-
-typedef struct 
-{
-  nid_t id;
-  wid_t work;
-  int num_parents; 
-  int children[N_OF_NOD];
-  int num_children;
-  
-} node;
 
 </declaration><template><name x="5" y="5">Module</name><parameter>id_t id, wid_t wid, int p_time, int t_time, int cost_rate, id_t&amp; next[4], int length</parameter><declaration>clock local_c;
 
@@ -44,8 +33,8 @@ bool is_callable(id_t cid){
 cost' == cost_rate</label></location><location id="id3" x="168" y="248"><name x="120" y="264">Transporting</name><label kind="invariant" x="120" y="280">local_c &lt;= t_time</label></location><location id="id4" x="168" y="-24"><name x="158" y="-54">Idle</name></location><init ref="id4"/><transition><source ref="id0"/><target ref="id1"/><label kind="synchronisation" x="640" y="33">work[wid]!</label><label kind="assignment" x="640" y="48">remaining -= cost_rate *  p_time</label></transition><transition><source ref="id2"/><target ref="id0"/><label kind="guard" x="648" y="160">local_c == p_time</label><label kind="synchronisation" x="648" y="176">handshake[lock]?</label></transition><transition><source ref="id3"/><target ref="id4"/><label kind="select" x="288" y="72">e: id_t</label><label kind="guard" x="288" y="88">is_callable(e) &amp;&amp;
 local_c == t_time</label><label kind="synchronisation" x="288" y="112">transport[e]!</label><label kind="assignment" x="288" y="128">var = lock</label><nail x="272" y="104"/></transition><transition><source ref="id3"/><target ref="id2"/><label kind="guard" x="304" y="256">local_c == t_time</label><label kind="assignment" x="304" y="272">local_c = 0</label></transition><transition><source ref="id1"/><target ref="id4"/><label kind="select" x="340" y="-69">e: id_t</label><label kind="guard" x="340" y="-54">is_callable(e)</label><label kind="synchronisation" x="340" y="-39">transport[e]!</label><label kind="assignment" x="340" y="-24">var = lock</label></transition><transition><source ref="id4"/><target ref="id3"/><label kind="synchronisation" x="-72" y="80">transport[id]?</label><label kind="assignment" x="-72" y="96">local_c = 0,
 remaining += cost_rate * p_time,
-lock = var</label></transition></template><template><name>Recipe</name><parameter>rid_t rid, wid_t&amp; n_work[N_OF_NOD],  int&amp; n_num_parents[N_OF_NOD], int&amp; n_children[N_OF_NOD][N_OF_NOD], int&amp; n_children_len[N_OF_NOD] , int length</parameter><declaration>bool done = false; /Indicates when we are done with recipe
-int current_nodes[N_OF_NOD]; //Keeps track of currently accessible nodes, which can be worked 
+lock = var</label></transition></template><template><name>Recipe</name><parameter>rid_t rid, wid_t&amp; n_work[N_OF_NOD1],  int&amp; n_num_parents[N_OF_NOD1], int&amp; n_children[N_OF_NOD1][N_OF_NOD1], int&amp; n_children_len[N_OF_NOD1]</parameter><declaration>bool done = false; //Indicates when we are done with recipe; 
+int current_nodes[N_OF_NOD1]; //Keeps track of currently accessible nodes, which can be worked 
 int c_length = 0; // Length of current array to consider
 int called_node = -1; // Node being worked on
 
@@ -55,11 +44,11 @@ void get_upper_nodes(){
     
     //Fill array with -1s otherwise it would be filled with 0s.
     //0 is an actual node index so we want to be able to differentiate
-    for(i = 0; i &lt; length; i++)
+    for(i = 0; i &lt; N_OF_NOD1 ; i++)
        current_nodes[i] = -1;
 
     //Searches through graph, if a node is found not to have a parent it is added.
-    for(i = 0; i &lt; length; i++)
+    for(i = 0; i &lt; N_OF_NOD1 ; i++)
         if(n_num_parents[i] == 0){
             current_nodes[c_length] = i;
 	    c_length++;    
@@ -88,7 +77,7 @@ int get_called_node(wid_t w){
 
 //Updates the current nodes array to reflect that work has been done.
 void update_current_nodes(int called_id){
-    int new_nodes[N_OF_NOD];
+    int new_nodes[N_OF_NOD1];
     int i;
     int j = 0;
     
@@ -133,12 +122,13 @@ m2 = Module(2, 2, 5, 5, 5, connections2, 2);
 m3 = Module(3, 4, 5, 5, 5, connections3, 2);
 m4 = Module(4, 3, 5, 5, 5, connections4, 2);
 
-wid_t n_works[N_OF_NOD] = {1,2,3,4};
-int n_num_parents[N_OF_NOD] = {0,1,1,1};
-int n_children[N_OF_NOD][N_OF_NOD] = {{1,-1,-1,-1}, {2,-1,-1,-1}, {3,-1,-1,-1}, {-1,-1,-1,-1}};
-int n_children_len[N_OF_NOD] = {1,1,1,0};
+wid_t n_works[N_OF_NOD1] = {1,2,3,4};
+int n_num_parents[N_OF_NOD1] = {0,1,1,1};
+int n_children[N_OF_NOD1][N_OF_NOD1] = {{1,-1,-1,-1}, {2,-1,-1,-1}, {3,-1,-1,-1}, {-1,-1,-1,-1}};
+int n_children_len[N_OF_NOD1] = {1,1,1,0};
 
-r1 = Recipe(1, n_works, n_num_parents, n_children, n_children_len, N_OF_NOD);
+
+r1 = Recipe(1, n_works, n_num_parents, n_children, n_children_len);
 
 rem = Remover();
 cos = Coster(1);

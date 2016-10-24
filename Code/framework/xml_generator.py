@@ -1,6 +1,22 @@
-from Experiments.configuration import Module, Configuration
-from Experiments.xml_generator import create_model_xml
+from xml.etree.ElementTree import parse
+from copy import deepcopy
 
+
+def create_model_xml(file, replace_dict, new_file):
+    """
+    XML: Updates the text of elements that are direct children of root
+    :param file: path to xml file needing an update.
+    :param replace_dict: A dictionary where the keys correspond to tags in the XML,
+     and values containing new text to be placed in specified tags.
+    :param new_file: path specifying where the updated file should be written to.
+    """
+    tree = parse(file)
+
+    for key, value in replace_dict.items():
+        element = tree.find(key)
+        element.text = value
+
+    tree.write(new_file)
 
 def generate_xml(template_file, modules, recipes, new_file_name="test.xml"):
   """
@@ -26,24 +42,19 @@ def generate_xml(template_file, modules, recipes, new_file_name="test.xml"):
   number_of_worktypes = len(S)
 
 
-  global_decl_string = generate_global_declarations(len(modules), number_of_worktypes, len(recipes))
+  global_decl_string = generate_global_declarations(len(modules), number_of_worktypes, recipes)
 
   replace_dict = {"system": system_string, "declaration": global_decl_string}  # TODO generate different connections for the modules and make an xml file for each
   create_model_xml(template_file, replace_dict, new_file_name)
 
 
-def generate_global_declarations(number_of_modules, number_of_worktypes, number_of_recipes):
-  """
-  Generates global declarations for UPPAAL
-  :param number_of_modules: The amount of modules
-  :param number_of_worktypes: The amount of different worktypes spread over modules
-  :param number_of_recipes: The amount of recipes
-  :return: a string declaring global variables for UPPAAL
-  """
+def generate_global_declarations(number_of_modules, number_of_worktypes, recipes):
 
   s = "const int NUMBER_OF_MODULES = " + str(number_of_modules) + ";\n"
   s += "const int NUMBER_OF_WORKTYPES = " + str(number_of_worktypes) + ";\n"
-  s += "const int NUMBER_OF_RECIPES = " + str(number_of_recipes) + ";\n\n"
+  s += "const int NUMBER_OF_RECIPES = " + str(len(recipes)) + ";\n"
+  for id, r in enumerate(recipes):
+      s += "const int N_OF_NOD" + str(id) + " = " + str(len(r)) + ";\n"
 
   s += """chan transport[NUMBER_OF_MODULES + 1];
 chan work[NUMBER_OF_WORKTYPES + 1];
@@ -62,6 +73,37 @@ meta int remaining = 0;
 
   return  s
 
+
+def create_recipe_templates_xml(file, recipes, new_file):
+    tree = parse(file)
+
+    element = tree.findall("template")
+    for e in element:
+        if e.find("name").text == "Recipe":
+            recipe_template = e
+            break
+
+    tree.getroot().remove(recipe_template)
+    element = tree.find("system")
+    tree.getroot().remove(element)
+
+    for r in range(len(recipes)):
+        temp = deepcopy(recipe_template)
+
+        n = temp.find("name")
+        n.text = "Recipe" + str(r)
+
+        p = temp.find("parameter")
+        p.text = "rid_t rid, wid_t& n_work[N_OF_NOD" + str(r) +\
+                 "],  int& n_num_parents[N_OF_NOD" + str(r) + \
+                 "], int& n_children[N_OF_NOD" + str(r) +\
+                 "][N_OF_NOD" + str(r) +\
+                 "], int& n_children_len[N_OF_NOD" + str(r) + "]"
+        tree.getroot().append(temp)
+
+    tree.getroot().append(element)
+
+    tree.write(new_file)
 
 
 def generate_module_declarations(modules):
@@ -98,35 +140,7 @@ def generate_module_declarations(modules):
 
 
 def generate_recipe_declaration(id, dependencies):
-    s = "wid_t " + "deps" + str(id) +"[12][12] = {\n"
-    for i in range(12):
-        if not i == 0:
-            s += ","
-        if i > len(dependencies) - 1:
-            s += "{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}\n"
-        else:
-            s += "{"
-            for j in range(12):
-                if not j == 0:
-                    s += ", "
-                if j > len(dependencies[i]) - 1:
-                    s += "0"
-
-                else:
-                    s += str(dependencies[i][j])
-            s += "}\n"
-    s += "};\n\n"
-
-    s += "wid_t lengths" + str(id) + "[12] = {"
-    for i in range(12):
-        if not i == 0:
-            s += ", "
-        if i > len(dependencies) - 1:
-            s += "0"
-        else:
-            s += str(len(dependencies[i]))
-    s += "};\n\n"
-    s += "r" + str(id) + " = Recipe(" + str(id) + ", " + "deps" + str(id) + ", " + "lengths" + str(id) + ", " + str(len(dependencies)) + ");\n\n"
+    s =
 
     return s
 
