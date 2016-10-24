@@ -77,21 +77,21 @@ void update_status(){
 	}
 }</declaration><location id="id5" x="-224" y="-160"><name x="-208" y="-168">Handshaking</name><committed /></location><location id="id6" x="-400" y="8"><name x="-416" y="24">End</name></location><location id="id7" x="-400" y="-160"><name x="-496" y="-168">InProgress</name></location><location id="id8" x="-400" y="-296"><name x="-410" y="-326">Start</name></location><init ref="id8" /><transition><source ref="id5" /><target ref="id7" /><label kind="select" x="-288" y="-114">e: wid_t</label><label kind="guard" x="-288" y="-88">current_layer &lt; layers &amp;&amp;
 is_callable(e)</label><label kind="synchronisation" x="-288" y="-98">work[e]?</label><label kind="assignment" x="-288" y="-58">update_helper(e), 
-update_status()</label><nail x="-312" y="-104" /></transition><transition><source ref="id7" /><target ref="id5" /><label kind="synchronisation" x="-288" y="-256">handshake[rid]!</label><label kind="assignment" x="-288" y="-240">var = rid</label><nail x="-312" y="-216" /></transition><transition><source ref="id7" /><target ref="id6" /><label kind="guard" x="-576" y="-96">current_layer == layers</label><label kind="assignment" x="-496" y="-80">done = true</label></transition><transition><source ref="id8" /><target ref="id7" /><label kind="synchronisation" x="-496" y="-240">transport[1]!</label><label kind="assignment" x="-496" y="-224">var = rid</label></transition></template><template><name>Remover</name><location id="id9" x="-112" y="-8" /><init ref="id9" /><transition><source ref="id9" /><target ref="id9" /><label kind="synchronisation" x="0" y="-16">transport[0]?</label><nail x="-56" y="48" /><nail x="-8" y="-8" /><nail x="-56" y="-64" /></transition></template><template><name>Coster</name><parameter>int c</parameter><location id="id10" x="-576" y="-176"><label kind="invariant" x="-586" y="-161">cost' == c</label></location><init ref="id10" /></template><system>int connections1[4] = {3, -1, -1, -1};
-int connections2[4] = {2, 3, -1, -1};
-int connections3[4] = {4, 5, -1, -1};
-int connections4[4] = {7, -1, -1, -1};
-int connections5[4] = {5, 6, -1, -1};
-int connections6[4] = {7, -1, -1, -1};
-int connections7[4] = {0, 2, -1, -1};
+update_status()</label><nail x="-312" y="-104" /></transition><transition><source ref="id7" /><target ref="id5" /><label kind="synchronisation" x="-288" y="-256">handshake[rid]!</label><label kind="assignment" x="-288" y="-240">var = rid</label><nail x="-312" y="-216" /></transition><transition><source ref="id7" /><target ref="id6" /><label kind="guard" x="-576" y="-96">current_layer == layers</label><label kind="assignment" x="-496" y="-80">done = true</label></transition><transition><source ref="id8" /><target ref="id7" /><label kind="synchronisation" x="-496" y="-240">transport[1]!</label><label kind="assignment" x="-496" y="-224">var = rid</label></transition></template><template><name>Remover</name><location id="id9" x="-112" y="-8" /><init ref="id9" /><transition><source ref="id9" /><target ref="id9" /><label kind="synchronisation" x="0" y="-16">transport[0]?</label><nail x="-56" y="48" /><nail x="-8" y="-8" /><nail x="-56" y="-64" /></transition></template><template><name>Coster</name><parameter>int c</parameter><location id="id10" x="-576" y="-176"><label kind="invariant" x="-586" y="-161">cost' == c</label></location><init ref="id10" /></template><system>int connections1[4] = {-1, -1, -1, -1};
+int connections2[4] = {-1, -1, -1, -1};
+int connections3[4] = {-1, -1, -1, -1};
+int connections4[4] = {-1, -1, -1, -1};
+int connections5[4] = {-1, -1, -1, -1};
+int connections6[4] = {-1, -1, -1, -1};
+int connections7[4] = {-1, -1, -1, -1};
 
-m1 = Module(1, 1, 5, 5, 5, connections1, 1);
-m2 = Module(2, 2, 5, 10, 5, connections2, 2);
-m3 = Module(3, 2, 5, 10, 5, connections3, 2);
-m4 = Module(4, 3, 5, 5, 5, connections4, 1);
-m5 = Module(5, 3, 5, 5, 5, connections5, 2);
-m6 = Module(6, 4, 5, 5, 5, connections6, 1);
-m7 = Module(7, 4, 5, 5, 5, connections7, 2);
+m1 = Module(1, 1, 5, 5, 5, connections1, 0);
+m2 = Module(2, 2, 5, 10, 5, connections2, 0);
+m3 = Module(3, 2, 5, 10, 5, connections3, 0);
+m4 = Module(4, 3, 5, 5, 5, connections4, 0);
+m5 = Module(5, 3, 5, 5, 5, connections5, 0);
+m6 = Module(6, 4, 5, 5, 5, connections6, 0);
+m7 = Module(7, 4, 5, 5, 5, connections7, 0);
 
 
 wid_t deps1[12][12] = {

@@ -1,4 +1,4 @@
-from configuration import Module, Configuration
+from module import Module, Configuration
 from verifytaAPI import run_verifyta, get_best_cost
 from xml_generator import generate_xml, generate_query
 from genetic_algorithm import genetic_algorithm

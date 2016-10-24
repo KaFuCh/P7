@@ -3,4 +3,9 @@
 /*
 
 */
-E<> r0.done and r1.done
+E<> r1.done and global_c < 10
+
+/*
+
+*/
+E<> r1.done and r2.done

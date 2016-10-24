@@ -1,6 +1,6 @@
 from xml.etree.ElementTree import parse
 from copy import deepcopy
-
+from Experiments.xml_generator import create_model_xml
 
 def create_model_xml(file, replace_dict, new_file):
     """
